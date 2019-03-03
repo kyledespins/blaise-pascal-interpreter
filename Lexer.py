@@ -1,5 +1,4 @@
-from calc1 import Token
-from token_types import *
+from Token import *
 
 class Lexer(object):
     def __init__(self, text):
@@ -17,46 +16,49 @@ class Lexer(object):
         else:
             self.current_char = self.text[self.pos]
 
+    def integer(self):
+        """Return a (multidigit) integer consumed from the input."""
+        result = ''
+        while self.current_char is not None and self.current_char.isdigit():
+            result += self.current_char
+            self.advance()
+        return int(result)
+
+    def skip_whitespace(self):
+        while self.current_char is not None and self.current_char.isspace():
+            self.advance()
+
+            
     def get_next_token(self):
         """Lexical analyzer (also known as scanner or tokenizer)
 
         This method is responsible for breaking a sentence
         apart into tokens. One token at a time.
         """
-        if self.current_char is None:
-            return Token(EOF, None) 
-        if self.current_char.isspace():
-            self.advance()
-            return self.get_next_token()
+        while self.current_char is not None:
 
-        if self.current_char.isdigit():
-            i = None
-            while self.current_char is not None and self.current_char.isdigit():
-                if i is None:
-                    i = int(self.current_char)
-                else:
-                    i = int(str(i) + str(self.current_char))
+            if self.current_char.isspace():
+                self.skip_whitespace()
+                continue
+
+            if self.current_char.isdigit():
+                return Token(INTEGER, self.integer())
+
+            if self.current_char == '+':
                 self.advance()
-            token = Token(INTEGER, int(i))
-            return token
+                return Token(PLUS, '+')
 
-        if self.current_char == '+':
-            token = Token(PLUS, self.current_char)
-            self.advance()
-            return token
+            if self.current_char == '-':
+                self.advance()
+                return Token(MINUS, '-')
 
-        if self.current_char == '-':
-            token = Token(MINUS, self.current_char)
-            self.advance()
-            return token
+            if self.current_char == '*':
+                self.advance()
+                return Token(MULTIPLY, '*')
 
-        if self.current_char == '/':
-            token = Token(DIVIDE, self.current_char)
-            self.advance()
-            return token
-            
-        if self.current_char == '*':
-            token = Token(MULTIPLY, self.current_char)
-            self.advance()
-            return token
-        self.error()
+            if self.current_char == '/':
+                self.advance()
+                return Token(DIVIDE, '/')
+            self.error()
+
+        return Token(EOF, None)
